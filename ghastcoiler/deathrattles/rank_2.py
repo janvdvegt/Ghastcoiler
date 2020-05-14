@@ -7,8 +7,12 @@ from minions.tokens import DamagedGolem, Imp, BigBadWolf, Rat
 
 
 class HarvestGolemDeathrattle(Deathrattle):
-    # TODO
-    pass
+    def __init__(self):
+        super().__init__(name="HarvestGolemDeathrattle")
+
+    def trigger(self, minion: Minion, own_board: PlayerBoard, opposing_board: PlayerBoard):
+        logging.debug("Harvest Golem deathrattle triggered, creating Damaged Golem")
+        own_board.add_minion(DamagedGolem(golden=minion.golden), position=minion.position)
 
 
 class ImprisonerDeathrattle(Deathrattle):
@@ -22,8 +26,12 @@ class KaboomBotDeathrattle(Deathrattle):
 
 
 class KindlyGrandmotherDeathrattle(Deathrattle):
-    # TODO
-    pass
+    def __init__(self):
+        super().__init__(name="KindlyGrandmotherDeathrattle")
+
+    def trigger(self, minion: Minion, own_board: PlayerBoard, opposing_board: PlayerBoard):
+        logging.debug("Kindly Grandmother deathrattle triggered, creating Big Bad Wolf")
+        own_board.add_minion(BigBadWolf(golden=minion.golden), position=minion.position)
 
 
 class RatPackDeathrattle(Deathrattle):
