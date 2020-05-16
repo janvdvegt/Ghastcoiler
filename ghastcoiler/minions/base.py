@@ -1,9 +1,12 @@
 from __future__ import annotations
 
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 
 from deathrattles.base import Deathrattle
 from minions.types import MinionType
+
+if TYPE_CHECKING:
+    from game.player_board import PlayerBoard
 
 class Minion:
     def __init__(self, 
