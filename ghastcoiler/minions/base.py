@@ -1,29 +1,72 @@
+from __future__ import annotations
+
+from typing import Optional, List, TYPE_CHECKING
+
+from deathrattles.base import Deathrattle
+from minions.types import MinionType
+
+if TYPE_CHECKING:
+    from game.player_board import PlayerBoard
+    from game.game_instance import GameInstance
+
 class Minion:
     def __init__(self, 
-                 name, 
-                 rank,
-                 base_attack, 
-                 base_defense, 
-                 attack=None, 
-                 defense=None, 
-                 types=None, 
-                 base_poisonous=False,
-                 poisonous=False,
-                 base_divine_shield=False, 
-                 divine_shield=False, 
-                 base_taunt=False, 
-                 taunt=False, 
-                 base_cleave=False, 
-                 cleave=False, 
-                 base_reborn=False,
-                 reborn=False,
-                 base_windfury=False, 
-                 windfury=False,
-                 base_deathrattle=None,
-                 deathrattles=None, 
-                 golden=False,
-                 position=None,
-                 player_id=None):
+                 name: str, 
+                 rank: int,
+                 base_attack: int, 
+                 base_defense: int, 
+                 attack: Optional[int] = None, 
+                 defense: Optional[int] = None, 
+                 types: Optional[List[MinionType]] = None, 
+                 base_poisonous: bool = False,
+                 poisonous: bool = False,
+                 base_divine_shield: bool = False, 
+                 divine_shield: bool = False, 
+                 base_taunt: bool = False, 
+                 taunt: bool = False, 
+                 base_cleave: bool = False, 
+                 cleave: bool = False, 
+                 base_reborn: bool = False,
+                 reborn: bool = False,
+                 base_windfury: bool = False, 
+                 windfury: bool = False,
+                 base_deathrattle: Optional[Deathrattle] = None,
+                 deathrattles: Optional[List[Deathrattle]] = None, 
+                 golden: bool = False,
+                 position: Optional[int] = None,
+                 player_id: Optional[int] = None):
+        """Base minion class of which all normal minions and tokens should inherit from, and they can override certain triggers to implement custom behaviour.
+        Important to note is that all the "base_*" arguments should be used in implementing the normal minions and that the non-base versions should be used
+        for specific instances of the normal minions, so for the simulations itself in which case they can be different than their base type.
+
+        Arguments:
+            name {str} -- Name of the minion
+            rank {int} -- Rank of the minion
+            base_attack {int} -- Base attack of the non-golden version
+            base_defense {int} -- Base defense of the non-golden version
+
+        Keyword Arguments:
+            attack {Optional[int]} -- Optional overwritten attack (default: {None})
+            defense {Optional[int]} -- Optional overwritten defense (default: {None})
+            types {Optional[List[MinionType]]} -- Optional list of MinionTypes (default: {None})
+            base_poisonous {bool} -- Standard poisonous (default: {False})
+            poisonous {bool} -- Poisonous (default: {False})
+            base_divine_shield {bool} -- Standard divine shield (default: {False})
+            divine_shield {bool} -- Divine shield (default: {False})
+            base_taunt {bool} -- Standard taunt (default: {False})
+            taunt {bool} -- Taunt (default: {False})
+            base_cleave {bool} -- Standard cleave (default: {False})
+            cleave {bool} -- Cleave (default: {False})
+            base_reborn {bool} -- Standard reborn (default: {False})
+            reborn {bool} -- Reborn (default: {False})
+            base_windfury {bool} -- Standard windfury (default: {False})
+            windfury {bool} -- Windfury (default: {False})
+            base_deathrattle {Optional[Deathrattle]} -- Standard deathrattle (default: {None})
+            deathrattles {Optional[List[Deathrattle]]} -- Additional deathrattles (default: {None})
+            golden {bool} -- Golden version (default: {False})
+            position {Optional[int]} -- Position on the player board (default: {None})
+            player_id {Optional[int]} -- ID of player minion belongs to (default: {None})
+        """
         self.name = name
         self.rank = rank
         self.base_attack = base_attack * 2 if golden else base_attack
@@ -51,7 +94,12 @@ class Minion:
         self.position = position
         self.player_id = player_id
 
-    def copy(self):
+    def copy(self) -> "Minion":
+        """Semi-deep copy of minion - should only be used for copying initial state of player boards
+
+        Returns:
+            Minion -- Copy of the minion
+        """
         return Minion(name=self.name, 
                       rank=self.rank,
                       base_attack=self.base_attack,
@@ -68,15 +116,30 @@ class Minion:
                       deathrattles=self.deathrattles,
                       golden=self.golden)
 
-    def add_attack(self, amount):
+    def add_attack(self, amount: int):
+        """Add attack to minion, should be used for deathrattles and triggers, not for dynamic bonusses by other minions
+
+        Arguments:
+            amount {int} -- Amount of attack to increase
+        """
         self.attack += amount
         self.last_attack += amount
 
-    def add_defense(self, amount):
+    def add_defense(self, amount: int):
+        """Add defense to minion, should be used for deathrattles and triggers, not for dynamic bonusses by other minions
+
+        Arguments:
+            amount {int} -- Amount of defense to increase
+        """
         self.defense += amount
         self.last_defense += amount
 
-    def minion_string(self, name=False):
+    def minion_string(self):
+        """String representation of minion
+
+        Returns:
+            str -- String representation
+        """
         attributes = []
         if self.taunt:
             attributes += "[Ta]"
@@ -96,9 +159,23 @@ class Minion:
         return return_string
 
     def __str__(self):
-        return self.minion_string(name=True)
+        """String representation of minion
 
-    def receive_damage(self, amount, poisonous):
+        Returns:
+            str -- String representation
+        """
+        return self.minion_string()
+
+    def receive_damage(self, amount: int, poisonous: bool):
+        """Receive amount of damage which can be poisonous
+
+        Arguments:
+            amount {int} -- Amount of damage to receive
+            poisonous {bool} -- Whether the damage is poisonous
+
+        Returns:
+            bool -- Whether the minion has popped a shield
+        """
         popped_shield = False
         if self.divine_shield:
             if amount > 0:
@@ -111,7 +188,16 @@ class Minion:
                 self.defense -= amount
         return popped_shield
 
-    def check_death(self, own_board, opposing_board):
+    def check_death(self, own_board: PlayerBoard, opposing_board: PlayerBoard) -> bool:
+        """Check whether the minion is dead
+
+        Arguments:
+            own_board {PlayerBoard} -- Board minion belongs to
+            opposing_board {PlayerBoard} -- Board minion does not belong to
+
+        Returns:
+            bool -- Whether minion is dead
+        """
         total_defense = self.total_defense(own_board, opposing_board)
         if total_defense <= 0:
             self.total_attack(own_board, opposing_board)
@@ -119,16 +205,41 @@ class Minion:
         return False
 
     def update_attack_and_defense(self, own_board, opposing_board):
+        """Update attack and defense 
+
+        Arguments:
+            own_board {[type]} -- [description]
+            opposing_board {[type]} -- [description]
+        """
         self.total_defense(own_board, opposing_board)
         self.total_attack(own_board, opposing_board)
 
-    def at_beginning_game(self, game_instance, player_starts, own_board, opposing_board):
+    def at_beginning_game(self, game_instance: GameInstance, player_starts: bool, own_board: PlayerBoard, opposing_board: PlayerBoard):
+        """Trigger that can be implemented to do things at the beginning of the game
+
+        Arguments:
+            game_instance {GameInstance} -- The instance of the game we are working in
+            player_starts {bool} -- Whether this minion belongs to the starting player
+            own_board {PlayerBoard} -- Player board belonging to minion
+            opposing_board {PlayerBoard} -- Player board not belonging to minion
+        """
         pass
 
     def on_attack(self):
+        """Trigger that can be implemented when the minion attacks
+        """
         pass
 
-    def total_attack(self, own_board, opposing_board):
+    def total_attack(self, own_board: PlayerBoard, opposing_board: PlayerBoard):
+        """Calculate total attack of minion - WILL BE PART OF REFACTORING OF BONUS SYSTEM
+
+        Arguments:
+            own_board {PlayerBoard} -- Player board minion belongs to
+            opposing_board {PlayerBoard} -- Player board minion does not belong to
+
+        Returns:
+            int -- Total attack of minion
+        """
         additional_attack = self.additional_attack(own_board=own_board, opposing_board=opposing_board)
         total_bonus_attack = 0
         for other_minion in own_board.minions:
@@ -139,7 +250,16 @@ class Minion:
         self.last_attack = total_attack
         return total_attack
 
-    def total_defense(self, own_board, opposing_board):
+    def total_defense(self, own_board: PlayerBoard, opposing_board: PlayerBoard):
+        """Calculate total defense of minion - WILL BE PART OF REFACTORING OF BONUS SYSTEM
+
+        Arguments:
+            own_board {PlayerBoard} -- Player board minion belongs to
+            opposing_board {PlayerBoard} -- Player board minion does not belong to
+
+        Returns:
+            int -- Total defense of minion
+        """
         total_bonus_defense = 0        
         for other_minion in own_board.minions:
             if self.position != other_minion.position:
@@ -149,7 +269,17 @@ class Minion:
         self.last_defense = total_defense
         return total_defense
 
-    def total_attack_and_defense(self, own_board, opposing_board):
+    def total_attack_and_defense(self, own_board: PlayerBoard, opposing_board: PlayerBoard):
+        """Calculate total attack and defense of minion - WILL BE PART OF REFACTORING OF BONUS SYSTEM
+
+        Arguments:
+            own_board {PlayerBoard} -- Player board minion belongs to
+            opposing_board {PlayerBoard} -- Player board minion does not belong to
+
+        Returns:
+            Tuple[int, int] -- Total attack and defense of minion
+        """
+        
         additional_attack = self.additional_attack(own_board=own_board, opposing_board=opposing_board)
         total_bonus_attack, total_bonus_defense = 0, 0
         for other_minion in own_board.minions:
@@ -163,29 +293,61 @@ class Minion:
         self.last_defense = total_defense
         return total_attack, total_defense
 
-    def additional_attack(self, own_board, opposing_board):
+    def additional_attack(self, own_board: PlayerBoard, opposing_board: PlayerBoard) -> int:
+        """Additional attack due to personal bonuses
+
+        Arguments:
+            own_board {PlayerBoard} -- Player board minion belongs to
+            opposing_board {PlayerBoard} -- Player board minion does not belong to
+
+        Returns:
+            int -- Additional attack due to personal bonsus
+        """
         return 0
 
-    def gives_attack_defense_bonus(self, other_minion):
+    def gives_attack_defense_bonus(self, other_minion: Minion):
+        """How much additional attack and defense this minion grants the other minion
+
+        Arguments:
+            other_minion {Minion} -- Minion to potentially grant bonus attack and defense
+
+        Returns:
+            Tuple[int, int] -- Attack and defense bonus granted
+        """
         return 0, 0
 
     def on_kill(self):
+        """Trigger that happens when this minion kills another minion"""
         pass
 
     def on_receive_damage(self):
+        """Trigger that happens when this minion receives damage"""
         pass
 
-    def on_other_enter(self, other_minion):
+    def on_other_enter(self, other_minion: Minion):
+        """Trigger that happens when another minion enters the player board
+
+        Arguments:
+            other_minion {Minion} -- Minion entering the player board
+        """
         pass
 
-    def on_other_death(self, other_minion):
+    def on_other_death(self, other_minion: Minion):
+        """Trigger that happens when another minion on the player board dies
+
+        Arguments:
+            other_minion {Minion} -- Other minion that dies
+        """
         pass
 
     def on_any_minion_loses_divine_shield(self):
+        """Trigger that happens when a minion loses divine shield"""
         pass
 
     def shift_left(self):
+        """Shift position of minion left because a space cleared up"""
         self.position -= 1
 
     def shift_right(self):
+        """Shift position of minion right because a minion was added to the left"""
         self.position += 1
