@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-set -e
 
 ROOT_PATH="$( cd "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )/.."
 
-# source $ROOT_PATH/scripts/start_venv.sh
+if [[ -z "$CI" ]]; then
+    source $ROOT_PATH/scripts/start_venv.sh
+fi
 
 cd $ROOT_PATH
 
