@@ -7,6 +7,7 @@ from minions.tokens import JoEBot
 
 
 class FiendishServantDeathrattle(Deathrattle):
+    """When Fiendish Servant dies, add it's power to another minion on the board"""
     def __init__(self):
         super().__init__(name="FiendishServantDeathrattle")
 
@@ -20,6 +21,7 @@ class FiendishServantDeathrattle(Deathrattle):
 
 
 class MecharooDeathrattle(Deathrattle):
+    """When Mecharoo dies, create a Jo-E Bot token"""
     def __init__(self):
         super().__init__(name="MecharooDeathrattle")
 
