@@ -83,8 +83,10 @@ class PlayerBoard:
         for minion in self.minions[position:]:
             minion.shift_left()
 
-    def add_minion(self, minion, position):
+    def add_minion(self, minion, position=None):
         if len(self.minions) < 7:
+            if position is None:
+                position = len(self.minions)
             minion.position = position
             minion.player_id = self.player_id
             self.minions.insert(position, minion)
