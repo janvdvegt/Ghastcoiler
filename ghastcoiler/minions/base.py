@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Optional, List
 
 from deathrattles.base import Deathrattle
@@ -88,7 +90,7 @@ class Minion:
         self.position = position
         self.player_id = player_id
 
-    def copy(self) -> Minion:
+    def copy(self) -> "Minion":
         """Semi-deep copy of minion - should only be used for copying initial state of player boards
 
         Returns:

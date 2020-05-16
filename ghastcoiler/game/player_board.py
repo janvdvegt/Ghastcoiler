@@ -1,7 +1,7 @@
 import random
 import logging
 
-from typing import List
+from typing import List, Optional
 
 from minions.base import Minion
 from minions.types import MinionType
