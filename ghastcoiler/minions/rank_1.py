@@ -16,19 +16,20 @@ class Alleycat(Minion):
                          **kwargs)
 
 
-class DireWolfAlpha(Minion):
+class RabidSaurolisk(Minion):
     def __init__(self, **kwargs):
-        super().__init__(name="Dire Wolf Alpha",
+        super().__init__(name="Rabid Saurolisk",
                          rank=1,
-                         base_attack=2,
-                         base_defense=2,
+                         base_attack=3,
+                         base_defense=1,
                          types=[MinionType.Beast],
                          **kwargs)
 
-    def gives_attack_defense_bonus(self, other_minion):
-        if abs(self.position - other_minion.position) == 1:
-            return 1 + self.golden, 0
-        return 0, 0
+    def on_other_enter(self, other_minion):
+        if other_minion.deathrattles:
+            increase_amount = 2 if self.golden else 1
+            self.add_attack(increase_amount)
+            self.add_defense(increase_amount)
 
 
 class DragonspawnLieutenant(Minion):
