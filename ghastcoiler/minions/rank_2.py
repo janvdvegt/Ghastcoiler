@@ -86,7 +86,11 @@ class MurlocWarleader(Minion):
                          **kwargs)
 
     def gives_attack_defense_bonus(self, other_minion):
-        return 2, 0
+        if other_minion.types is MinionType.Murloc:
+            if self.golden:
+                return 4, 0
+            return 2, 0
+        return 0, 0
 
 
 class NathrezimOverseer(Minion):
@@ -122,8 +126,6 @@ class PogoHopper(Minion):
                          types=[MinionType.Mech],
                          **kwargs)
 
-        # TODO add battlecry
-
 
 class RatPack(Minion):
     def __init__(self, **kwargs):
@@ -145,6 +147,10 @@ class ScavengingHyena(Minion):
                          types=[MinionType.Beast],
                          **kwargs)
 
+    def on_other_death(self, other_minion):
+        # TODO
+        pass
+
 
 class SpawnofNZoth(Minion):
     def __init__(self, **kwargs):
@@ -165,8 +171,6 @@ class StewardofTime(Minion):
                          types=[MinionType.Dragon],
                          **kwargs)
 
-    # TODO: Add Selling mechanic
-
 
 class UnstableGhoul(Minion):
     def __init__(self, **kwargs):
@@ -178,6 +182,7 @@ class UnstableGhoul(Minion):
                          base_deathrattle=UnstableGhoulDeathrattle(),
                          **kwargs)
 
+
 class WaxriderTogwaggle(Minion):
     def __init__(self, **kwargs):
         super().__init__(name="Waxrider Togwaggle",
@@ -186,7 +191,9 @@ class WaxriderTogwaggle(Minion):
                          base_defense=2,
                          **kwargs)
 
-    # TODO: Add the Increment attribute
+    def on_other_death(self, other_minion):
+        # TODO: Whenever a friendly Dragon kills an enemy, gain +2/+2.
+        pass
 
 
 class Zoobot(Minion):
@@ -198,4 +205,3 @@ class Zoobot(Minion):
                          types=[MinionType.Mech],
                          **kwargs)
 
-    # TODO: Add Battlecry
