@@ -7,6 +7,7 @@ from minions.types import MinionType
 
 if TYPE_CHECKING:
     from game.player_board import PlayerBoard
+    from game.game_instance import GameInstance
 
 class Minion:
     def __init__(self, 
