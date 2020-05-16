@@ -83,14 +83,18 @@ class PlayerBoard:
         for minion in self.minions[position:]:
             minion.shift_left()
 
-    def add_minion(self, minion, position):
+    def add_minion(self, new_minion, position=None):
         if len(self.minions) < 7:
-            minion.position = position
-            minion.player_id = self.player_id
-            self.minions.insert(position, minion)
+            if position is None:
+                position = len(self.minions)
+            for minion in self.minions:
+                minion.on_other_enter(other_minion=new_minion)
+            new_minion.position = position
+            new_minion.player_id = self.player_id
+            self.minions.insert(position, new_minion)
             for minion in self.minions[position + 1:]:
                 minion.shift_right()
-            logging.debug(f"Adding {minion.minion_string()}")
-            return minion
+            logging.debug(f"Adding {new_minion.minion_string()}")
+            return new_minion
         else:
-            logging.debug(f"Did not add {minion.minion_string()} because of a lack of space")
+            logging.debug(f"Did not add {new_minion.minion_string()} because of a lack of space")
