@@ -1,5 +1,7 @@
 import logging
 
+from game.player_board import PlayerBoard
+
 from minions.base import Minion
 from minions.types import MinionType
 
@@ -17,7 +19,10 @@ class GlyphGuardian(Minion):
                          **kwargs)
 
     def on_attack(self):
-        self.attack *= 2
+        if self.golden:
+            self.attack *= 3
+        else:
+            self.attack *= 2
 
 
 class HarvestGolem(Minion):
@@ -72,7 +77,6 @@ class MetaltoothLeaper(Minion):
                          base_attack=3,
                          base_defense=3,
                          types=[MinionType.Mech],
-                         # TODO : add battlecry
                          **kwargs)
 
 
@@ -86,7 +90,7 @@ class MurlocWarleader(Minion):
                          **kwargs)
 
     def gives_attack_defense_bonus(self, other_minion):
-        if other_minion.types is MinionType.Murloc:
+        if MinionType.Murloc in other_minion.types:
             if self.golden:
                 return 4, 0
             return 2, 0
@@ -105,16 +109,17 @@ class NathrezimOverseer(Minion):
 
 class OldMurkEye(Minion):
     def __init__(self, **kwargs):
-        super().__init__(name="OldMurkEye",
+        super().__init__(name="Old Murk Eye",
                          rank=2,
                          base_attack=2,
                          base_defense=4,
                          types=[MinionType.Murloc],
                          **kwargs)
 
-    def additional_attack(self, own_board, opposing_board):
-        # TODO: +1 attack for each other murloc on the battlefield
-        pass
+    def additional_attack(self, own_board: PlayerBoard, opposing_board: PlayerBoard):
+        total_number_other_murlocs = own_board.count_minion_type(MinionType.Murloc) + opposing_board.count_minion_type(MinionType.Murloc) - 1 # Don't count itself
+        bonus = total_number_other_murlocs * 2 if self.golden else total_number_other_murlocs
+        return bonus
 
 
 class PogoHopper(Minion):
@@ -129,7 +134,7 @@ class PogoHopper(Minion):
 
 class RatPack(Minion):
     def __init__(self, **kwargs):
-        super().__init__(name="RatPack",
+        super().__init__(name="Rat Pack",
                          rank=2,
                          base_attack=2,
                          base_defense=2,
@@ -148,8 +153,10 @@ class ScavengingHyena(Minion):
                          **kwargs)
 
     def on_other_death(self, other_minion):
-        # TODO
-        pass
+        if MinionType.Beast in other_minion.types:
+            multiplier = 2 if self.golden else 1
+            self.add_attack(2 * multiplier)
+            self.add_defense(multiplier)
 
 
 class SpawnofNZoth(Minion):
@@ -192,16 +199,17 @@ class WaxriderTogwaggle(Minion):
                          **kwargs)
 
     def on_other_death(self, other_minion):
-        # TODO: Whenever a friendly Dragon kills an enemy, gain +2/+2.
-        pass
+        if MinionType.Dragon in other_minion.types:
+            added_bonus = 4 if self.golden else 2
+            self.add_attack(added_bonus)
+            self.add_defense(added_bonus)
 
 
 class Zoobot(Minion):
     def __init__(self, **kwargs):
-        super().__init__(name="Steward of Time",
+        super().__init__(name="Zoobot",
                          rank=2,
                          base_attack=3,
                          base_defense=3,
                          types=[MinionType.Mech],
                          **kwargs)
-
