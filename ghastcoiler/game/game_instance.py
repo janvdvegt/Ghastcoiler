@@ -32,10 +32,10 @@ class GameInstance:
         for minion in self.player_board[1].get_minions():
             minion.update_attack_and_defense(self.player_board[1], self.player_board[0])
 
-    def current_player_board(self):
+    def attacking_player_board(self):
         return self.player_board[self.player_turn]
 
-    def other_player_board(self):
+    def defending_player_board(self):
         return self.player_board[1 - self.player_turn]
 
     def finished(self):
@@ -47,32 +47,32 @@ class GameInstance:
             logging.debug("Divine shield popped")
             board.divine_shield_popped()
 
-    def kill(self, minion, current, other, minion_from_other):
+    def kill(self, minion, minion_board, opposing_board, minion_defending_player):
         # TODO: Baron
-        if minion_from_other:
-            other.remove_minion(minion)
+        if minion_defending_player:
+            opposing_board.remove_minion(minion)
         else:
-            current.remove_minion(minion)
+            minion_board.remove_minion(minion)
         for deathrattle in minion.deathrattles:
-            if minion_from_other:
-                deathrattle.trigger(minion, other, current)
+            if minion_defending_player:
+                deathrattle.trigger(minion, opposing_board, minion_board)
             else:
-                deathrattle.trigger(minion, current, other)
-        self.check_deaths(current, other)
+                deathrattle.trigger(minion, minion_board, opposing_board)
+        self.check_deaths(minion_board, opposing_board)
 
     def check_deaths(self, current, other):
         for minion in current.get_minions():
             if minion.check_death(current, other):
-                self.kill(minion, current, other, minion_from_other=False)
+                self.kill(minion, current, other, minion_defending_player=False)
                 return
         for minion in other.get_minions():
             if minion.check_death(other, current):
-                self.kill(minion, current, other, minion_from_other=True)
+                self.kill(minion, current, other, minion_defending_player=True)
                 return
 
     def attack(self, attacking_minion: Minion, defending_minion: Minion):
         # TODO: Cleave
-        current, other = self.current_player_board(), self.other_player_board()
+        current, other = self.attacking_player_board(), self.defending_player_board()
         logging.debug(f"{attacking_minion.minion_string()} attacks {defending_minion.minion_string()}")
         attacking_minion.on_attack()
         attacking_minion_attack, _ = attacking_minion.total_attack_and_defense(current, other)
@@ -87,8 +87,8 @@ class GameInstance:
             return self.player_board[0].score()
 
     def start(self):
-        current = self.current_player_board()
-        other = self.other_player_board()
+        current = self.attacking_player_board()
+        other = self.defending_player_board()
         for minion in current.get_minions():
             minion.at_beginning_game(self, True, current, other)
         for minion in other.get_minions():
@@ -98,10 +98,10 @@ class GameInstance:
             logging.debug(f"Turn {self.turn} has started, player {self.player_turn} will attack")
             self.print_game()
             logging.debug('-----------------')
-            attacking_minion = self.current_player_board().select_attacking_minion()
-            defending_minion = self.other_player_board().select_defending_minion()
+            attacking_minion = self.attacking_player_board().select_attacking_minion()
+            defending_minion = self.defending_player_board().select_defending_minion()
             self.attack(attacking_minion, defending_minion)
-            self.check_deaths(self.current_player_board(), self.other_player_board())
+            self.check_deaths(self.attacking_player_board(), self.defending_player_board())
             logging.debug("=================")
             self.player_turn = 1 - self.player_turn
         logging.debug(self.calculate_score_player_0())
