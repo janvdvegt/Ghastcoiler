@@ -93,17 +93,32 @@ class PlayerBoard:
             minion.on_any_minion_loses_divine_shield()
 
     def select_attacking_minion(self):
-        """Select next minion that should attack, this is not working correctly at the moment
+        """Select next minion that should attack
 
         Returns:
-            Minion -- Minion that will attack next
+            Minion -- Minion that will attack next or None if there are no minions with attack > 0
         """
-        # TODO: Take care of 0 attack units
-        if self.attack_position >= len(self.minions):
-            self.attack_position = 0
-        minion = self.minions[self.attack_position]
-        self.attack_position += 1
-        return minion
+        # Is there at least one possible attacker on the board
+        eligibleAttacker = False
+
+        for minion in self.minions:
+            eligibleAttacker = minion.attack > 0
+            if not minion.attacked:
+                if minion.attack == 0:
+                    minion.attacked = True # Skip zero attack minions
+                    continue
+                return minion
+
+        # All minions have zero attack
+        if not eligibleAttacker:
+            return None
+
+        # All minions must have attacked this round, reset their flags
+        for minion in self.minions:
+            minion.attacked = False
+
+        return self.select_attacking_minion()
+        #return None if not eligibleAttacker else self.select_attacking_minion()
 
     def generate_possible_defending_minions(self, attacks_lowest=False):
         """Generate list of minions that can be currently attacked

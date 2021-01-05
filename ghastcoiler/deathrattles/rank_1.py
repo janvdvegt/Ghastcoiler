@@ -27,4 +27,4 @@ class MecharooDeathrattle(Deathrattle):
 
     def trigger(self, minion: Minion, own_board: PlayerBoard, opposing_board: PlayerBoard):
         logging.debug("Mecharoo deathrattle triggered, creating Jo-E Bot")
-        own_board.add_minion(JoEBot(golden=minion.golden), position=minion.position)
+        own_board.add_minion(JoEBot(golden=minion.golden, attacked=minion.attacked), position=minion.position)

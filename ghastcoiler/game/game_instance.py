@@ -19,6 +19,7 @@ class GameInstance:
             player_turn {Optional[int]} -- Player that starts, if None choose at random (default: {None})
         """
         self.player_board = {0: player_board_0, 1: player_board_1}
+        # TODO: Player turn is determined by minion count, should we use that here? Or determine it at start of first combat?
         self.player_turn = player_turn if player_turn else random.randint(0, 1)
         self.turn = 0
 
@@ -72,7 +73,8 @@ class GameInstance:
         Returns:
             bool -- Is the game finished?
         """
-        return len(self.player_board[0].minions) == 0 or len(self.player_board[1].minions) == 0
+        draw = self.player_board[0].select_attacking_minion() is None and self.player_board[1].select_attacking_minion() is None
+        return len(self.player_board[0].minions) == 0 or len(self.player_board[1].minions) == 0 or draw
 
     def deal_damage(self, minion, board, amount, poisonous):
         """Deal damage to minion
@@ -93,7 +95,7 @@ class GameInstance:
 
         Arguments:
             minion {Minion} -- Minion that will die
-            minion_board {PlayerBoard} -- Player board belonging to the minion
+            minion_board {PlayerBoard} -- Player board belonging to the minion that will die
             opposing_board {PlayerBoard} -- Board opposing of the minion that dies
             minion_defending_player {bool} -- Whether the minion died is on the defending side for trigger orders
         """
@@ -119,7 +121,7 @@ class GameInstance:
         for minion in attacking_player_board.get_minions():
             if minion.check_death(attacking_player_board, defending_player_board):
                 self.kill(minion, attacking_player_board, defending_player_board, minion_defending_player=False)
-                return
+                return # TODO: Allow multiple units to die at once, ie when cleave happens
         for minion in defending_player_board.get_minions():
             if minion.check_death(defending_player_board, attacking_player_board):
                 self.kill(minion, attacking_player_board, defending_player_board, minion_defending_player=True)
@@ -132,14 +134,16 @@ class GameInstance:
             attacking_minion {Minion} -- Minion that attacks
             defending_minion {Minion} -- Minion that is attacked
         """
-        # TODO: Cleave
-        current, other = self.attacking_player_board(), self.defending_player_board()
+        # TODO: Cleave, Windfury, Mega windfury
+        attacker, defender = self.attacking_player_board(), self.defending_player_board()
         logging.debug(f"{attacking_minion.minion_string()} attacks {defending_minion.minion_string()}")
         attacking_minion.on_attack()
-        attacking_minion_attack, _ = attacking_minion.total_attack_and_defense(current, other)
-        defending_minion_attack, _ = defending_minion.total_attack_and_defense(other, current)
-        self.deal_damage(attacking_minion, current, defending_minion_attack, defending_minion.poisonous)
-        self.deal_damage(defending_minion, other, attacking_minion_attack, attacking_minion.poisonous)
+        attacking_minion_attack, _ = attacking_minion.total_attack_and_defense(attacker, defender)
+        defending_minion_attack, _ = defending_minion.total_attack_and_defense(defender, attacker)
+
+        # TODO Double check if order matters for who processes damage first, the attacking minion vs defending minion
+        self.deal_damage(attacking_minion, attacker, defending_minion_attack, defending_minion.poisonous)
+        self.deal_damage(defending_minion, defender, attacking_minion_attack, attacking_minion.poisonous)
 
     def calculate_score_player_0(self):
         """Calculate final score from player 0 perspective, negative is lost by X, 0 is a tie and positive is won by X
@@ -147,10 +151,21 @@ class GameInstance:
         Returns:
             int -- Amount by which player 0 won or lost
         """
-        if len(self.player_board[0].minions) == 0:
-            return - self.player_board[1].score()
+        player0Minions = self.player_board[0].minions
+        player1Minions = self.player_board[1].minions
+
+        # If the only minions left on both sides all have zero attack power, game is a tie
+        if len(player0Minions) != 0 and len(player1Minions) != 0:
+            if all(minion.attack == 0 for minion in player0Minions) and all(minion.attack == 0 for minion in player1Minions):
+                return 0
+
+        if len(player0Minions) == 0:
+            if len(player1Minions) == 0:
+                return 0 # No minions left on either board, game is a tie
+            else:
+                return - self.player_board[1].score() # player 1 wins
         else:
-            return self.player_board[0].score()
+            return self.player_board[0].score() # player 0 wins
 
     def start(self):
         """Start game instance rollout
@@ -158,6 +173,14 @@ class GameInstance:
         Returns:
             int -- Final score from player 0 perspective
         """
+        # TODO: Handle Illidan Stormrage hero power here (before whelp power triggers)
+
+        # TODO: Is attacking player determined before or after a red whelp potentially kills an opposing minion?
+        player0minions = len(self.player_board[0].minions)
+        player1minions = len(self.player_board[1].minions)
+        self.player_turn = 0 if player0minions > player1minions else 1 if player1minions > player0minions else random.randint(0, 1)
+
+        # TODO: Determine red whelp trigger priority 
         current = self.attacking_player_board()
         other = self.defending_player_board()
         for minion in current.get_minions():
@@ -171,9 +194,16 @@ class GameInstance:
             logging.debug('-----------------')
             attacking_minion = self.attacking_player_board().select_attacking_minion()
             defending_minion = self.defending_player_board().select_defending_minion()
-            self.attack(attacking_minion, defending_minion)
-            self.check_deaths(self.attacking_player_board(), self.defending_player_board())
+            if attacking_minion:
+                self.attack(attacking_minion, defending_minion)
+                self.check_deaths(self.attacking_player_board(), self.defending_player_board())
+                # Flag the minion as having attacked. 
+                # It may be dead, but we have to set this after all deathrattles have been resolved to maintain correct attack order...
+                attacking_minion.attacked = True
+            else:
+                logging.debug("No eligible attackers")
             logging.debug("=================")
             self.player_turn = 1 - self.player_turn
-        logging.debug(self.calculate_score_player_0())
+
+        logging.debug(f"Ending board score {self.calculate_score_player_0()}")
         return self.calculate_score_player_0()

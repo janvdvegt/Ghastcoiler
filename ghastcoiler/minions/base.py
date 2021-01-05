@@ -34,7 +34,8 @@ class Minion:
                  deathrattles: Optional[List[Deathrattle]] = None, 
                  golden: bool = False,
                  position: Optional[int] = None,
-                 player_id: Optional[int] = None):
+                 player_id: Optional[int] = None,
+                 attacked: bool = False):
         """Base minion class of which all normal minions and tokens should inherit from, and they can override certain triggers to implement custom behaviour.
         Important to note is that all the "base_*" arguments should be used in implementing the normal minions and that the non-base versions should be used
         for specific instances of the normal minions, so for the simulations itself in which case they can be different than their base type.
@@ -66,6 +67,7 @@ class Minion:
             golden {bool} -- Golden version (default: {False})
             position {Optional[int]} -- Position on the player board (default: {None})
             player_id {Optional[int]} -- ID of player minion belongs to (default: {None})
+            attacked {bool} -- Has this minion been passed in the attack order this round (i.e. has it or the minion who spawned it attacked already) (default: {False})
         """
         self.name = name
         self.rank = rank
@@ -93,6 +95,7 @@ class Minion:
         self.golden = golden
         self.position = position
         self.player_id = player_id
+        self.attacked = attacked
 
     def copy(self) -> "Minion":
         """Semi-deep copy of minion - should only be used for copying initial state of player boards

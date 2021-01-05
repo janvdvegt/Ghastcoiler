@@ -145,3 +145,11 @@ class WrathWeaver(Minion):
                          rank=1,
                          base_attack=1,
                          base_defense=1)
+
+class PunchingBag(Minion):
+    def __init__(self, **kwargs):
+        super().__init__(name="PunchingBag",
+                         rank=1,
+                         base_attack=0,
+                         base_defense=100)
+                         

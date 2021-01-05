@@ -12,7 +12,7 @@ class HarvestGolemDeathrattle(Deathrattle):
 
     def trigger(self, minion: Minion, own_board: PlayerBoard, opposing_board: PlayerBoard):
         logging.debug("Harvest Golem deathrattle triggered, creating Damaged Golem")
-        own_board.add_minion(DamagedGolem(golden=minion.golden), position=minion.position)
+        own_board.add_minion(DamagedGolem(golden=minion.golden, attacked=minion.attacked), position=minion.position)
 
 
 class ImprisonerDeathrattle(Deathrattle):
@@ -21,7 +21,7 @@ class ImprisonerDeathrattle(Deathrattle):
 
     def trigger(self, minion: Minion, own_board: PlayerBoard, opposing_board: PlayerBoard):
         logging.debug("Imprisoner deathrattle triggered, creating Imp")
-        own_board.add_minion(Imp(golden=minion.golden), position=minion.position)
+        own_board.add_minion(Imp(golden=minion.golden, attacked=minion.attacked), position=minion.position)
 
 
 class KaboomBotDeathrattle(Deathrattle):
@@ -34,7 +34,7 @@ class KaboomBotDeathrattle(Deathrattle):
         else:
             logging.debug("Kaboom Bot deathrattle triggered, dealing 4 damage")
         number_bombs = 2 if minion.golden else 1
-        for bomb in range(number_bombs):
+        for _ in range(number_bombs):
             # TODO: Should kill the unit before throwing a second bomb
             opposing_minion = opposing_board.random_minion()
             opposing_minion.receive_damage(amount=4, poisonous=False)
@@ -46,7 +46,7 @@ class KindlyGrandmotherDeathrattle(Deathrattle):
 
     def trigger(self, minion: Minion, own_board: PlayerBoard, opposing_board: PlayerBoard):
         logging.debug("Kindly Grandmother deathrattle triggered, creating Big Bad Wolf")
-        own_board.add_minion(BigBadWolf(golden=minion.golden), position=minion.position)
+        own_board.add_minion(BigBadWolf(golden=minion.golden, attacked=minion.attacked), position=minion.position)
 
 
 class RatPackDeathrattle(Deathrattle):
@@ -56,8 +56,8 @@ class RatPackDeathrattle(Deathrattle):
     def trigger(self, minion: Minion, own_board: PlayerBoard, opposing_board: PlayerBoard):
         number_rats = minion.last_attack
         logging.debug(f"Rat pack deathrattle triggered, creating {number_rats} rats")
-        for rat in range(number_rats):
-            own_board.add_minion(Rat(golden=minion.golden), position=minion.position)
+        for _ in range(number_rats):
+            own_board.add_minion(Rat(golden=minion.golden, attacked=minion.attacked), position=minion.position)
 
 
 class SpawnofNZothDeathrattle(Deathrattle):
